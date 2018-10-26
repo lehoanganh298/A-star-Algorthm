@@ -49,7 +49,6 @@ class Graph:
         return self.matrix[pos[0]][pos[1]];
     
     
-     
     # true if pos is an empty point
     def validPos(self,pos):
         return pos[0]>=0 and pos[0]<self.size and \
@@ -64,7 +63,6 @@ class Graph:
         
         return EuclideanDistance(pos,self.goal);
     
-    
     # path-estimation function f used in A* algorithm
     # f(pos) = g(pos) + h(pos)
     # g = distance from pos to start
@@ -72,6 +70,7 @@ class Graph:
     def fAstar(self,pos):
         return self.point(pos).dist + self.heuristic(pos);
     
+    # A* algorithm implementation
     def Astar(self):
         # Traversaling order to adjacent point, clockwise
         adjOrder=[(-1,-1),(-1,0),(-1,1),(0,1),(1,1),(1,0),(1,-1),(0,-1)];
@@ -79,18 +78,20 @@ class Graph:
         # Initialize priority queue with start point
         queue=[];
         heap.heappush(queue,(0,self.start));
-        path=[];
-        foundPath=False;
+        distance=-1;    # smallest distance from Start to Goal
+        path=[];    # list store points in the shortest path
         
         while queue:
             d,p=heap.heappop(queue);
+            
             if p==self.goal:
                 distance = self.point(self.goal).dist;
                 
-                path.append(self.start);
                 while p!=self.start:
                     path=[p]+path;
-                    p=self.point(p).trace;                
+                    p=self.point(p).trace;  
+                path=[self.start]+path;
+                
                 break;
             
             for adj in adjOrder:
@@ -108,26 +109,27 @@ class Graph:
     # sys.stdout=open('output.txt','w')
     def output(self,distance,path):
         print(distance);
-        for p in path:
-            print(f'({p[0]},{p[1]}) -> ',end='')
-        print();
         
-        for i in range(self.size):
-            for j in range(self.size):
-                if (i,j)==self.start:
-                    print('S',end=' ')
-                elif (i,j)==self.goal:
-                    print('G',end=' ')
-                elif (i,j) in path:
-                    print('x',end=' ')
-                elif not(self.validPos((i,j))):
-                    print('o',end=' ')
-                else:
-                    print('-',end=' ')
+        if distance>0:
+            for p in path:
+                print(f'({p[0]},{p[1]})',end=' ')
             print();
             
+            for i in range(self.size):
+                for j in range(self.size):
+                    if (i,j)==self.start:
+                        print('S',end=' ')
+                    elif (i,j)==self.goal:
+                        print('G',end=' ')
+                    elif (i,j) in path:
+                        print('x',end=' ')
+                    elif not(self.validPos((i,j))):
+                        print('o',end=' ')
+                    else:
+                        print('-',end=' ')
+                print();
             
-            
+          
 g=Graph();
 g.input();
 distance,path = g.Astar();
