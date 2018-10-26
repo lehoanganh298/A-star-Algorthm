@@ -5,76 +5,77 @@ import math
 
 class Point:
     """ store information of each point in the grid space """
+
     def __init__(self, valid, dist, trace=None):
-        self.valid = valid;   # true=empty, false=obstacle
-        self.dist = dist;     # distance from the start point
-        self.trace = trace;   # store previous point in the path to the goal
+        self.valid = valid;  # true=empty, false=obstacle
+        self.dist = dist;  # distance from the start point
+        self.trace = trace;  # store previous point in the path to the goal
 
 
 class Graph:
     """
     Graph class store information of the grid space:
         matrix: store points in the grid
-        size: size of the grid (size x size)
-        start: position of the start point (x,y)
-        goal: position of the goal point (x,y)
-    """
-    def __init__(self):
-        pass
-    
-    # Read input 
+    #         size: size of the grid (size x size)
+    #         start: position of the start point (x,y)
+    #         goal: position of the goal point (x,y)
+    #     """
+
+    #     def __init__(self):
+    #         pass
+    #
+    #     # Read input
     # Remember to replace input.txt to sys.argv[1]
     def input(self):
         with open('input.txt') as f:
-            self.size, = [int(x) for x in next(f).split()]
+            self.size = [int(x) for x in next(f).split()]
             self.start = tuple([int(x) for x in next(f).split()])
             self.goal = tuple([int(x) for x in next(f).split()])
-            
+
             self.matrix = []
-            maxPathLength = self.size*2;  # path from start to goal can not exceed size*2
+            maxPathLength = self.size * 2;  # path from start to goal can not exceed size*2
             # Read the matrix
             # 0 -> Point(True,maxPathLength,None)
             # 1 -> Point(False,-1,None)
             for line in f:
-                self.matrix.append([Point(True,maxPathLength) \
-                    if x=='0' else Point(False,-1) \
-                  for x in line.split()])
-        
+                self.matrix.append([Point(True, maxPathLength)
+                                        if x == '0' else Point(False, -1)
+                                    for x in line.split()])
+
         # Distance of start point is 0
         self.point(self.start).dist = 0;
         # Mark that start point's trace is not None, but is not other position
         self.point(self.start).trace = (-1, -1);
 
     # return the matrix element of graph at position pos
-    def point(self,pos):
+    def point(self, pos):
         return self.matrix[pos[0]][pos[1]];
 
     # true if pos is an empty point
     def validPos(self, pos):
-        return pos[0]>=0 and pos[0]<self.size and \
-            pos[1]>=0 and pos[1]<self.size and \
-            self.point(pos).valid;
-    
-    
+        return pos[0] >= 0 and pos[0] < self.size and \
+               pos[1] >= 0 and pos[1] < self.size and \
+               self.point(pos).valid;
+
     # Heuristic function return Euclidean distance between pos and goal point
     def heuristic(self, pos):
         def EuclideanDistance(pos1, pos2):
-            return math.sqrt((pos[0]-pos1[0])**2+(pos2[1]-pos1[1])**2)
-        
+            return math.sqrt((pos[0] - pos1[0]) ** 2 + (pos2[1] - pos1[1]) ** 2)
+
         return EuclideanDistance(pos, self.goal);
-    
+
     # path-estimation function f used in A* algorithm
     # f(pos) = g(pos) + h(pos)
     # g = distance from pos to start
     # h = heuristic distance from pos to goal
     def fAstar(self, pos):
         return self.point(pos).dist + self.heuristic(pos);
-    
+
     # A* algorithm implementation
     def Astar(self):
         # Traversaling order to adjacent point, clockwise
         adjOrder = [(-1, -1), (-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1)];
-        
+
         # Initialize priority queue with start point
         queue = [];
         heap.heappush(queue, (0, self.start));
