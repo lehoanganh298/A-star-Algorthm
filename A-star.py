@@ -28,7 +28,8 @@ class Graph:
         self.start = tuple()
         self.goal = tuple()
         self.matrix = []
-        self.maxPathLength = 10000
+
+        """Thêm đối tượng Form nữa"""
 
     # Read input
     # Remember to replace input.txt to sys.argv[1]
@@ -39,13 +40,14 @@ class Graph:
             self.goal = tuple([int(x) for x in next(f).split()])
 
             # self.matrix = []
-            maxPathLength = self.size * self.size  # path from start to goal can not exceed size*2
+            max_path_length = self.size * self.size  # path from start to goal can not exceed size^2
+
             # Read the matrix
             # 0 -> Point(True,maxPathLength,None)
             # 1 -> Point(False,-1,None)
             for line in f:
                 self.matrix.append([
-                    Point(True, maxPathLength)
+                    Point(True, max_path_length)
                     if x == '0' else Point(False, -1)
                     for x in line.split()])
 
@@ -54,34 +56,36 @@ class Graph:
         # Mark that start point's trace is not None, but is not other position
         self.point(self.start).trace = (-1, -1)
 
+        """Gọi các lệnh Form(), set_start_cell, set_goal_cell, set_block_cell để vẽ bản đồ"""
+
     # return the matrix element of graph at position pos
     def point(self, pos):
         return self.matrix[pos[0]][pos[1]]
 
     # true if pos is an empty point
-    def validPos(self, pos):
+    def valid_pos(self, pos):
         return 0 <= pos[0] < self.size and \
                0 <= pos[1] < self.size and \
                self.point(pos).valid
 
     # Heuristic function return Euclidean distance between pos and goal point
     def heuristic(self, pos):
-        def EuclideanDistance(pos1, pos2):
+        def euclidean_distance(pos1, pos2):
             return math.sqrt((pos[0] - pos1[0]) ** 2 + (pos2[1] - pos1[1]) ** 2)
 
-        return EuclideanDistance(pos, self.goal)
+        return euclidean_distance(pos, self.goal)
 
     # path-estimation function f used in A* algorithm
     # f(pos) = g(pos) + h(pos)
     # g = distance from pos to start
     # h = heuristic distance from pos to goal
-    def fAstar(self, pos):
+    def f_astar(self, pos):
         return self.point(pos).dist + self.heuristic(pos)
 
     # A* algorithm implementation
-    def Astar(self):
+    def astar(self):
         # Traversaling order to adjacent point, clockwise
-        adjOrder = [(-1, -1), (-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1)]
+        adj_order = [(-1, -1), (-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1)]
 
         # Initialize priority queue with start point
         queue = []
@@ -100,14 +104,17 @@ class Graph:
                     p = self.point(p).trace
                 path = [self.start] + path
 
-                break;
+                break
 
-            for adj in adjOrder:
+            for adj in adj_order:
                 padj = (p[0] + adj[0], p[1] + adj[1])
-                if self.validPos(padj) and self.fAstar(padj) > self.fAstar(p) + 1:
+                if self.valid_pos(padj) and self.f_astar(padj) > self.f_astar(p) + 1:
                     self.point(padj).dist = self.point(p).dist + 1
                     self.point(padj).trace = p
                     heap.heappush(queue, (self.point(padj).dist, padj))
+
+                    """Cập nhật lại fn, gn, hn; hiển thị ô đang xét trên màn hình,
+                    xét xong nhớ giải phóng trên giao diện"""
 
         return distance, path
 
@@ -130,11 +137,12 @@ class Graph:
                         print('G', end=' ')
                     elif (i, j) in path:
                         print('x', end=' ')
-                    elif not (self.validPos((i, j))):
+                    elif not (self.valid_pos((i, j))):
                         print('o', end=' ')
                     else:
                         print('-', end=' ')
-                print();
+                print()
+
 
 class Form(Frame):
     """
@@ -150,7 +158,7 @@ class Form(Frame):
         + Black cells is invalid point
     - Play button to Start process A* search
     """
-    def __init__(self, parent, numRow, numCol):
+    def __init__(self, parent, num_row, num_col):
         Frame.__init__(self, parent)
 
         self.fn = Label(self, text="0.0")
@@ -172,7 +180,7 @@ class Form(Frame):
         self.color_route = "orange"
         self.color_block = "black"
 
-        self.initUI(numRow, numCol)
+        self.initUI(num_row, num_col)
 
     def initUI(self, num_row, num_col):
         self.parent.title("A* Heuristic")
@@ -238,7 +246,7 @@ class Form(Frame):
 
 g = Graph()
 g.input()
-distance, path = g.Astar()
+distance, path = g.astar()
 g.output(distance, path)
 
 # root = Tk()
