@@ -1,4 +1,6 @@
 import sys
+import heapq as heap
+import math
 
 class Point:
     """ store information of each point in the grid space """
@@ -61,28 +63,36 @@ class Graph:
         return pos[0]>=0 and pos[0]<self.size and \
             pos[1]>=0 and pos[1]<self.size and \
             self.point(pos).valid;
-                
-    def BFS(self):
+    
+    # Heuristic function return distance between pos1 and pos2
+    # Use Euclidean distance
+    #def heuristic(pos1,pos2):
+    #    return math.sqrt((pos2[0]-pos1[0])**2+(pos2[1]-pos1[1])**2)
+    
+    
+    def UCS(self):
+        # Traversaling order to adjacent point, clockwise
         adjOrder=[(-1,-1),(-1,0),(-1,1),(0,1),(1,1),(1,0),(1,-1),(0,-1)];
         
+        # Initialize priority queue with start point
         queue=[];
-        
-        queue.append(self.start);
+        heap.heappush(queue,self.start);
         
         while queue:
-            p=queue.pop(0);
+            p=heap.heappop(queue);
             if p==self.goal:
                 while p!=self.start:
                     print(f'({p[0]},{p[1]}) <-',end='');
                     p=self.point(p).trace;
                 print(f'({p[0]},{p[1]})')
+                break;
             
             for adj in adjOrder:
                 padj=(p[0]+adj[0],p[1]+adj[1]);
-                if self.validPos(padj) and self.point(padj).trace==None:
+                if self.validPos(padj) and self.point(padj).dist>self.point(p).dist+1:
                     self.point(padj).dist=self.point(p).dist+1;
                     self.point(padj).trace=p;
-                    queue.append(padj);
+                    heap.heappush(queue,padj);
             
 g=Graph();
 g.input();
