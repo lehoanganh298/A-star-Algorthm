@@ -49,14 +49,6 @@ class Graph:
         return self.matrix[pos[0]][pos[1]];
     
     
-    # Output
-    # Remember to replace output.txt to sys.argv[2]  
-    #sys.stdout=open('output.txt','w')
-    def output(self):
-        for row in self.matrix:
-            for i in row:
-                print(i.dist, end=' ');
-            print();
      
     # true if pos is an empty point
     def validPos(self,pos):
@@ -64,37 +56,79 @@ class Graph:
             pos[1]>=0 and pos[1]<self.size and \
             self.point(pos).valid;
     
-    # Heuristic function return distance between pos1 and pos2
-    # Use Euclidean distance
-    #def heuristic(pos1,pos2):
-    #    return math.sqrt((pos2[0]-pos1[0])**2+(pos2[1]-pos1[1])**2)
+    
+    # Heuristic function return Euclidean distance between pos and goal point
+    def heuristic(self,pos):
+        def EuclideanDistance(pos1,pos2):
+            return math.sqrt((pos[0]-pos1[0])**2+(pos2[1]-pos1[1])**2)
+        
+        return EuclideanDistance(pos,self.goal);
     
     
-    def UCS(self):
+    # path-estimation function f used in A* algorithm
+    # f(pos) = g(pos) + h(pos)
+    # g = distance from pos to start
+    # h = heuristic distance from pos to goal
+    def fAstar(self,pos):
+        return self.point(pos).dist + self.heuristic(pos);
+    
+    def Astar(self):
         # Traversaling order to adjacent point, clockwise
         adjOrder=[(-1,-1),(-1,0),(-1,1),(0,1),(1,1),(1,0),(1,-1),(0,-1)];
         
         # Initialize priority queue with start point
         queue=[];
-        heap.heappush(queue,self.start);
+        heap.heappush(queue,(0,self.start));
+        path=[];
+        foundPath=False;
         
         while queue:
-            p=heap.heappop(queue);
+            d,p=heap.heappop(queue);
             if p==self.goal:
+                distance = self.point(self.goal).dist;
+                
+                path.append(self.start);
                 while p!=self.start:
-                    print(f'({p[0]},{p[1]}) <-',end='');
-                    p=self.point(p).trace;
-                print(f'({p[0]},{p[1]})')
+                    path=[p]+path;
+                    p=self.point(p).trace;                
                 break;
             
             for adj in adjOrder:
                 padj=(p[0]+adj[0],p[1]+adj[1]);
-                if self.validPos(padj) and self.point(padj).dist>self.point(p).dist+1:
+                if self.validPos(padj) and self.fAstar(padj)>self.fAstar(p)+1:
                     self.point(padj).dist=self.point(p).dist+1;
                     self.point(padj).trace=p;
-                    heap.heappush(queue,padj);
+                    heap.heappush(queue,(self.point(padj).dist,padj));
+                    
+        return distance,path;
+         
+    
+    # Output
+    # Remember to replace output.txt to sys.argv[2]  
+    # sys.stdout=open('output.txt','w')
+    def output(self,distance,path):
+        print(distance);
+        for p in path:
+            print(f'({p[0]},{p[1]}) -> ',end='')
+        print();
+        
+        for i in range(self.size):
+            for j in range(self.size):
+                if (i,j)==self.start:
+                    print('S',end=' ')
+                elif (i,j)==self.goal:
+                    print('G',end=' ')
+                elif (i,j) in path:
+                    print('x',end=' ')
+                elif not(self.validPos((i,j))):
+                    print('o',end=' ')
+                else:
+                    print('-',end=' ')
+            print();
+            
+            
             
 g=Graph();
 g.input();
-g.BFS();
-#g.output();
+distance,path = g.Astar();
+g.output(distance,path);
