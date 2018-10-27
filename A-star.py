@@ -1,13 +1,9 @@
-import sys
 import heapq as heap
 import math
-from tkinter.ttk import Frame, Label
-import tkinter.font as tkFont
 
 
 class Point:
     """ store information of each point in the grid space """
-
     def __init__(self, valid, dist, trace=None):
         self.valid = valid  # true=empty, false=obstacle
         self.dist = dist  # distance from the start point
@@ -18,9 +14,10 @@ class Graph:
     """
     Graph class store information of the grid space:
         matrix: store points in the grid
-    #         size: size of the grid (size x size)
-    #         start: position of the start point (x,y)
-    #         goal: position of the goal point (x,y)
+        size: size of the grid (size x size)
+        start: position of the start point (x,y)
+        goal: position of the goal point (x,y)
+        form: Form GUI
     #     """
 
     def __init__(self):
@@ -28,8 +25,6 @@ class Graph:
         self.start = tuple()
         self.goal = tuple()
         self.matrix = []
-
-        """Thêm đối tượng Form nữa"""
 
     # Read input
     # Remember to replace input.txt to sys.argv[1]
@@ -56,8 +51,6 @@ class Graph:
         # Mark that start point's trace is not None, but is not other position
         self.point(self.start).trace = (-1, -1)
 
-        """Gọi các lệnh Form(), set_start_cell, set_goal_cell, set_block_cell để vẽ bản đồ"""
-
     # return the matrix element of graph at position pos
     def point(self, pos):
         return self.matrix[pos[0]][pos[1]]
@@ -72,7 +65,6 @@ class Graph:
     def heuristic(self, pos):
         def euclidean_distance(pos1, pos2):
             return math.sqrt((pos[0] - pos1[0]) ** 2 + (pos2[1] - pos1[1]) ** 2)
-
         return euclidean_distance(pos, self.goal)
 
     # path-estimation function f used in A* algorithm
@@ -113,9 +105,6 @@ class Graph:
                     self.point(padj).trace = p
                     heap.heappush(queue, (self.point(padj).dist, padj))
 
-                    """Cập nhật lại fn, gn, hn; hiển thị ô đang xét trên màn hình,
-                    xét xong nhớ giải phóng trên giao diện"""
-
         return distance, path
 
     # Output
@@ -144,115 +133,7 @@ class Graph:
                 print()
 
 
-class Form(Frame):
-    """
-    Class Form manage things show on Windows Form, include:
-    - Menu: Allow to choose input file (lately development)
-    - Label: pQueue, pos of current point, value of f(n) = g(n) + h(n)
-    - Grid represent maps with:
-        + Red cell is Start point
-        + Flag cell is Goal point
-        + Blue cell is in-process point
-        + Orange cells is points on best current route from start to goal
-        + Gray cells is valid point
-        + Black cells is invalid point
-    - Play button to Start process A* search
-    """
-    def __init__(self, parent, num_row, num_col):
-        Frame.__init__(self, parent)
-
-        self.fn = Label(self, text="0.0")
-        self.gn = Label(self, text="0.0")
-        self.hn = Label(self, text="800.0")
-
-        self.parent = parent
-        self.font_cell = tkFont.Font(family="monospace", size=20)
-        self.lbl_pQueue = Label(self, text="pQueue")
-        self.lbl_current_point = Label(self, text="Current Point: ")
-
-        self.lbl_fn = Label(self, text="f(n)=")
-        self.lbl_gn = Label(self, text="g(n)=")
-        self.lbl_hn = Label(self, text="h(n)=")
-
-        self.text_goal = "G"
-        self.color_start = "red"
-        self.color_current_point = "blue"
-        self.color_route = "orange"
-        self.color_block = "black"
-
-        self.initUI(num_row, num_col)
-
-    def initUI(self, num_row, num_col):
-        self.parent.title("A* Heuristic")
-
-        self.lbl_fn.grid(row=num_row, column=0)
-        self.fn.grid(row=num_row, column=1)
-
-        self.lbl_gn.grid(row=num_row + 1, column=0)
-        self.gn.grid(row=num_row + 1, column=1)
-
-        self.lbl_hn.grid(row=num_row + 2, column=0)
-        self.hn.grid(row=num_row + 2, column=1)
-
-        self.lbl_current_point.grid(row=num_row+3, column=0, columnspan=2)
-
-        print(self.gn)
-
-        for i in range(num_row):
-            self.rowconfigure(i, pad=3)
-        for i in range(num_col):
-            self.columnconfigure(i, pad=3)
-
-        labels = []
-        color = "gray"
-
-        for i in range(num_row):
-            labels.append([])
-            for j in range(num_col):
-                labels[i].append(self.create_cell(i, j, color))
-
-        self.pack()
-
-    def create_cell(self, r, c, color="gray"):
-        label1 = Label(self)
-        label1.configure(width="2", background=color, font=self.font_cell)
-        label1.grid(row=r, column=c)
-        return label1
-
-    def set_start_cell(self, start):
-        self.create_cell(start[0], start[1], self.color_start)
-
-    def set_goal_cell(self, goal):
-        label_goal = self.create_cell(goal[0], goal[1])
-        label_goal.configure(text=self.text_goal)
-
-    def set_block_cell(self, block):
-        self.create_cell(block[0], block[1], self.color_block)
-
-    def load_cell_to_process(self, cell):
-        self.create_cell(cell[0], cell[1], self.color_current_point)
-        self.pack()
-
-    def unload_cell(self, cell):
-        self.create_cell(cell[0], cell[1])
-        self.pack()
-
-    def update_value_fgh(self, fn, gn, hn):
-        self.fn['text'] = str(fn)
-        self.gn['text'] = str(gn)
-        self.hn['text'] = str(hn)
-        self.pack()
-
-
 g = Graph()
 g.input()
-distance, path = g.astar()
-g.output(distance, path)
-
-# root = Tk()
-# app = Form(root, 4, 9)
-# app.set_start_cell([1, 1])
-# app.set_goal_cell([3, 2])
-# app.update_value_fgh(3.2, 2.9, 1.0)
-# app.load_cell_to_process([1,2])
-# root.mainloop()
+result_distance, result_path = g.astar()
+g.output(result_distance, result_path)
