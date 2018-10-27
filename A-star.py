@@ -1,7 +1,7 @@
 import sys
 import heapq as heap
 import math
-
+        
 class Point:
     """ store information of each point in the grid space """
     def __init__(self,valid,dist,trace=None):
@@ -24,7 +24,9 @@ class Graph:
     # Remember to replace input.txt to sys.argv[1]
     def input(self):
         with open('input.txt') as f:
-            self.size, = [int(x) for x in next(f).split()]
+            #a=next(f);
+            #print(a)
+            self.size = int(next(f))#[int(x) for x in next(f).split()]
             self.start = tuple([int(x) for x in next(f).split()])
             self.goal = tuple([int(x) for x in next(f).split()])
             
@@ -59,11 +61,21 @@ class Graph:
     # Heuristic function return Euclidean distance between pos and goal point
     def heuristic(self,pos):
         def EuclideanDistance(pos1,pos2):
-            return math.sqrt((pos[0]-pos1[0])**2+(pos2[1]-pos1[1])**2)
+            return math.sqrt((pos2[0]-pos1[0])**2+(pos2[1]-pos1[1])**2)
         
         return EuclideanDistance(pos,self.goal);
     
-    # path-estimation function f used in A* algorithm
+    # Heuristic function use my distance function
+    # d = max(|x1-x2|,|y1-y2|)
+    # Optimal heuristic, because it is the shortest path between 2 point 
+    # when there are no obstacles block the path
+    def myheuristic(self,pos):
+        def MyDistance(pos1,pos2):
+            return max(abs(pos1[0]-pos2[0]),abs(pos1[1]-pos2[1]))
+        
+        return MyDistance(pos,self.goal);
+    
+    # Path-estimation function f used in A* algorithm
     # f(pos) = g(pos) + h(pos)
     # g = distance from pos to start
     # h = heuristic distance from pos to goal
@@ -82,6 +94,8 @@ class Graph:
         path=[];    # list store points in the shortest path
         
         while queue:
+            self.outputQueue(queue);
+            #input();
             d,p=heap.heappop(queue);
             
             if p==self.goal:
@@ -103,7 +117,24 @@ class Graph:
                     
         return distance,path;
          
-    
+    def outputQueue(self,queue):
+        m=[]
+        for i in range(self.size):
+            row=[]
+            for j in range(self.size):
+                if not(self.validPos((i,j))):
+                    row.append('o')
+                else:
+                    row.append('-')
+            m.append(row)
+        m[self.start[0]][self.start[1]]='S'
+        m[self.start[0]][self.start[1]]='S'
+        for d,p in queue:
+            m[p[0]][p[1]]='*'
+        for row in m:
+            for p in row:
+                print(p,end=' ');
+            print()
     # Output
     # Remember to replace output.txt to sys.argv[2]  
     # sys.stdout=open('output.txt','w')
