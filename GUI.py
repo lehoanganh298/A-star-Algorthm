@@ -22,9 +22,9 @@ class OpenFileWindow(Frame):
         Frame.__init__(self, parent)
 
         self.parent = parent
-        self.initUI()
+        self.init_ui()
 
-    def initUI(self):
+    def init_ui(self):
         self.parent.title("Open File Window")
         self.pack(fill=BOTH, expand=1)
 
