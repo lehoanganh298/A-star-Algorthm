@@ -74,7 +74,7 @@ class App:
     def __init__(self, filename):
 
         self.queue = []
-        self.distance = -1
+        self.distance = "+oo"
         self.path = []
 
         self.size = 0
@@ -195,7 +195,7 @@ class App:
                     p = self.get_cell(p).trace
 
                 self.path = [self.start] + self.path
-                self.lbl_distance.configure(text="Final Distance: " + str(self.distance))
+                # self.lbl_distance.configure(text="Final Distance: " + str(self.distance))
 
             else:
                 if p != self.start:
@@ -208,6 +208,8 @@ class App:
                         self.get_cell(padj).trace = p
                         self.get_label(padj).configure(background=COLOR_HEAP)
                         heap.heappush(self.queue, (self.get_cell(padj).dist, padj))
+        else:
+            self.lbl_distance.configure(text="Final Distance: " + str(self.distance))
 
         # self.form.after(UPDATE_CLOCK, self.next_step())
 
