@@ -1,124 +1,99 @@
-import heapq
-import numpy as np
-
-class Vertice:
+class Vertex:
     """
-    Vertice object store information of each vertice in graph
-    Store in adjacency list approach (each vertice have a list of adjacent vertices)
+    Vertex object store information of each vertex in graph
+    Store in adjacency list approach (each vertex have a list of adjacent vertices)
     """
     def __init__(self,adj_list=[]):
-        self.adj_list=adj_list
+        self.adjacency_list=adj_list 
+        self.dist=-1        # distance value of each vertex used in search algorithm, default -1
+        self.trace=None     # vertex to trace back to start point in finding path in graph
 
 class Graph:
     """
     A general graph compatible with many data structures and implementations
     Use adjacency list approach:
-    Store a list of all vertices, each vertice have a list of adjacent vertices
+    Store a list of all vertices, each vertex have a list of adjacent vertices
     """
     def __init__(self):
         pass
 
-    def vertice(self,vert):
-        """ vert: vertice identifier (name/index)
-        Return a Vertice object in this graph 
+    def vertex(self,vert):
+        """ vert: vertex identifier (name/index)
+        Return a vertex object in this graph 
         """
         pass
 
-    def vertice_list(self):
-        """ A list or an iterator object use for iterate through the graph
-            for vertice in vertice_list:
+    def search_with_priority_queue(self, start, goal, priority_function, update_function=lambda g,f,start,goal:None):
         """
-        pass
-
-    def uniform_cost_search(self, start, goal):
-        """
-        Find the shortest path from one vertice to another vertice in the graph
-        using Uniform cost search (UCS) algorithm
-        Main idea: expand the vertice with smallest distance in the frontier
+        Find the shortest path from one vertex to another vertex in the graph using priority queue
+        Main idea: expand the vertex with smallest distance in the frontier
 
         Input: 
         start, goal: identifiers (name/index) of the start point and the destination point
+        priority_function: return a key value to each vertex to determine which vertex in the frontier to be expanded
+            (expand vertex with smallest key value)
+        update_function (optional): function execute each time the graph update
+            (i.e expand a vertex in the frontier)
+            Used for keep track and print graph changes overtime
+            Parameter:
+                self: this graph
+                frontier: give update_function the frontier's current value
+                start, goal: the start vertex and goal vertex
 
         Output:
         shortest_distance: the length of the shortest path from Start to Goal
-        If there are no path from Start to Goal, shortest_path = -1
+            If there are no path from Start to Goal, shortest_path = -1
         path: list of vertices form the shortest path from Start to Goal
         """
-        shortest_distance = -1  # shortest distance from start to goal
         path = []  # store vertices in the shortest road from start to goal
+        self.vertex(start).dist = 0
 
-        inf = float('inf')    # just a name for the infinity number
-        # Set distance of start vertice to 0, and other's to inf
-        for ver in self.vertice_list():
-            ver.dist = inf
-        self.vertice(start).dist = 0
+        #####################################################################
+        # TODO: implement frontier using heap (currently using dictionary)  #
+        #####################################################################
+        def pop_minimum(dic):
+            for idx, key in enumerate(dic):
+                if idx==0 or dic[key]<dic[min_key]:
+                    min_key=key
+            dic.pop(min_key)
+            return min_key
 
-        frontier = []  # priority queue store CURRENTLY OPEN vertices and their distance
-        # sorted by their distance (vertice with smallest distance on top)
-        heapq.heappush(frontier, (0,start))  # add start vetice
+        frontier = {}  # priority queue store CURRENTLY OPEN vertices and their distance
+        # sorted by their distance (vertex with smallest distance on top)
+        frontier[start] = priority_function(start)  # add start vetice
 
         while frontier:
-            dist , vert = heapq.heappop(frontier)
+            update_function(self,frontier, start, goal)   #print current graph state or any update operation in each iteration
+            
+            vert = pop_minimum(frontier)
 
             if vert == goal:
-                shortest_distance = self.vertice(goal).dist
                 # Trace back to start and add vertices to {path}
                 path = [goal]+path
                 while vert != start:
-                    vert = self.vertice(vert).trace
+                    vert = self.vertex(vert).trace
                     path = [vert]+path
                 break
 
-            for adj, edge_len in self.vertice(vert).adj_list:
-                if self.vertice(adj).dist == inf \
-                or self.vertice(adj).dist > self.vertice(vert).dist + edge_len:
-                    self.vertice(adj).dist = self.vertice(vert).dist + edge_len   # update distance
-                    self.vertice(adj).trace = vert # update trace back vertice
-                    heapq.heappush(frontier, (self.vertice(adj).dist, adj))    # add to frontier
+            for adj, edge_len in self.vertex(vert).adjacency_list:
+                if self.vertex(adj).dist == -1 \
+                or self.vertex(adj).dist > self.vertex(vert).dist + edge_len:
+                    self.vertex(adj).dist = self.vertex(vert).dist + edge_len   # update distance
+                    self.vertex(adj).trace = vert # update trace back vertex
+                    # update/add updated vertex to frontier with it's priority key value
+                    frontier[adj]=priority_function(adj)
 
-        return shortest_distance, path
+        return self.vertex(goal).dist, path
 
-class Grid(Graph):
-    """
-    A special type of graph. A grid of mxn cell, each cell is either valid (0) or unvalid (1)
-    Find path go through valid cells from start point to destination point
-    From each cell can go to adjacent cell have either commond edge or common vertice
-    Each cell can be treated as a vertice, and connected with  adjacent vetices
 
-    Data structure:
-    Use a matrix {vertice_matrix} to store every vertices in the grid
-    Each element is a Vertice object
-    Add valid adjacent vertices to each valid vertice's adj_list
+    def uniform_cost_search(self, start, goal, update_function=lambda g,f,start,goal:None):
+        return self.search_with_priority_queue(start, goal, 
+        priority_function = lambda vert: self.vertex(vert).dist, 
+        update_function=update_function)
 
-    Implementation:
-    Use numpy library for better data structures and operations
-    vertice_matrix is a numpy array
-    """
-    def __init__(self,grid):
-        """ Transform the grid information to graph form (vertices and adjacent list) """
-        # Initialize vertice_matrix same size with grid
-        self.vertice_matrix=np.empty_like(grid,dtype=object)
 
-        # Order when look for adjacent vertices: CLOCKWISE
-        adj_order = [(-1, -1), (-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1)]
-        for x, row in enumerate(grid):
-            for y, point in enumerate(row):
-                adj_list=[]
-                if point=='0':
-                    # Build the adj_list
-                    for dx, dy in adj_order:
-                        adj_x = x+dx
-                        adj_y = y+dy
-                        if adj_x>=0 and adj_x<grid.shape[0] and adj_y>=0 and adj_y<grid.shape[1] \
-                        and grid[adj_x][adj_y]=='0':
-                            adj_list.append(((adj_x,adj_y),1))  # distance between 2 adjacent vetices is 1
-
-                self.vertice_matrix[x,y] = Vertice(adj_list)
-
-    def vertice(self,vert):
-        """ Vertice identifier is a tuple (x,y) correspoding to the vertice's position """
-        return self.vertice_matrix[vert]
-
-    def vertice_list(self):
-        # Just return the list of all element in the matrix
-        return [v for row in self.vertice_matrix for v in row]
+    def A_star_search(self,start, goal, heuristic_function, update_function=lambda g,f,start,goal:None):
+        def f_A_star(vert):
+            return self.vertex(vert).dist + heuristic_function(vert)
+        
+        return self.search_with_priority_queue(start, goal, f_A_star, update_function)

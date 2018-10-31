@@ -1,9 +1,8 @@
 import sys
-import numpy as np
-from graph import Graph, Grid, Vertice
+from grid_graph import Grid_graph
 
-# Get  grid size, grid matrix, start and goal point from input file
-def input(file_name):
+# Get grid size, grid matrix, start and goal point from input file
+def input_grid(file_name):
     try:
         with open(file_name) as f:
             size = int(f.readline())
@@ -11,13 +10,13 @@ def input(file_name):
             goal = tuple([int(x) for x in f.readline().split()])
             assert size>0 and len(start)==2 and len(goal)==2, 'size/start/goal is not correct'
 
-            grid=np.full((size,size),'0')
+            grid=[]
             for row in range(size):
                 line = [x for x in f.readline().split()]
-                assert len(line)==size, f'row {row} is not correct'
-                grid[row,:] = line
+                assert len(line)==size, f'row {row} of the grid is not correct'
+                grid.append(line)
             
-        return start, goal, grid
+        return size, grid, start, goal
 
     except FileNotFoundError:
         raise Exception(f'File {file_name} does not exist.abc')
@@ -26,36 +25,13 @@ def input(file_name):
     else:
         raise Exception('Some error occur.')
 
-# Output the found shortest path and it's lenth
-def output(file_out, shortest_distance, path, grid):
-    orig_stdout=sys.stdout
-    sys.stdout=file_out
-
-    print(shortest_distance)
-
-    if shortest_distance > 0:
-        grid_output=np.empty_like(grid)
-        for x, row in enumerate(grid):
-            for y, point in enumerate(row):
-                grid_output[x,y] = '-' if point=='0' else 'o'
-
-        for p in path:
-            grid_output[p] = 'x'
-        grid_output[path[0]]='S'
-        grid_output[path[-1]]='G'
-
-        for p in path:
-            print(f'({p[0]},{p[1]})', end=' ')
-        print()
-        for row in grid_output:
-            for p in row:
-                print(p, end=' ')
-            print()
-
-    sys.stdout=orig_stdout
-
-g=Graph()
-start, goal, grid = input('Test4.txt')
-g = Grid(grid)
-shortest_distance, path = g.uniform_cost_search(start, goal)
-output(sys.stdout,shortest_distance,path,grid)
+# BEGIN THE PROGRAM
+# Get the grid space information and position of the Start cell and Goal cell
+size, grid, start, goal = input_grid('Test2.txt')
+g = Grid_graph(grid)
+shortest_distance, path = g.uniform_cost_search(start, goal, Grid_graph.print_grid_state)
+#shortest_distance, path = g.A_star_search(start, goal, Grid_graph.print_grid_state)
+# orig_stdout=sys.stdout
+# sys.stdout=open('output.txt','w')
+g.print_found_path(shortest_distance,path)
+# sys.stdout=orig_stdout
