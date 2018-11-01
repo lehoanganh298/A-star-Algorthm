@@ -42,5 +42,5 @@ shortest_distance, path = g.A_star_search(start, goal,
 
 # orig_stdout=sys.stdout
 # sys.stdout=open('output.txt','w')
-g.print_found_path(shortest_distance, path)
+g.print_search_result(shortest_distance, path)
 # sys.stdout=orig_stdout
