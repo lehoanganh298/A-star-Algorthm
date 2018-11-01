@@ -139,20 +139,27 @@ class Grid_graph(Graph):
         input()
         #time.sleep(0.5)
 
-    def print_found_path(self, path):
-        """ Print the found shortest path in the grid: cells in path display by 'x' """
-        grid_output = np.full(self.size, '-')
-        for x in range(self.size[0]):
-            for y in range(self.size[1]):
-                if self.vertex((x, y)).valid == False:
-                    grid_output[x, y] = 'o'
-
-        for p in path:
-            grid_output[p] = 'x'
-        grid_output[path[0]] = 'S'
-        grid_output[path[-1]] = 'G'
-
-        for row in grid_output:
-            for p in row:
+    def print_found_path(self, shortest_distance, path):
+        """ Print the found shortest path length, list of vertices display on the grid """
+        print(shortest_distance)
+    
+        if shortest_distance > 0:
+            for p in path:
                 print(p, end=' ')
             print()
+
+            grid_output = np.full(self.size, '-')
+            for x in range(self.size[0]):
+                for y in range(self.size[1]):
+                    if self.vertex((x, y)).valid == False:
+                        grid_output[x, y] = 'o'
+
+            for p in path:
+                grid_output[p] = 'x'
+            grid_output[path[0]] = 'S'
+            grid_output[path[-1]] = 'G'
+
+            for row in grid_output:
+                for p in row:
+                    print(p, end=' ')
+                print()
