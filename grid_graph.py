@@ -139,8 +139,10 @@ class Grid_graph(Graph):
         input()
         #time.sleep(0.5)
 
-    def print_found_path(self, shortest_distance, path):
-        """ Print the found shortest path length, list of vertices display on the grid """
+    def print_search_result(self, shortest_distance, path):
+        """ Print the found shortest path length, list of vertices display on the grid 
+            Or print -1 if no path was found 
+        """
         print(shortest_distance)
     
         if shortest_distance > 0:
