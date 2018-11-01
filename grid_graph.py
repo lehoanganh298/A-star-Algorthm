@@ -1,4 +1,5 @@
 import numpy as np
+import math
 import time
 from graph import Vertex, Graph
 
@@ -53,27 +54,51 @@ class Grid_graph(Graph):
                             # distance between 2 adjacent vetices is 1
                             adj_list.append(((adj_x, adj_y), 1))
 
-                self. vertex_matrix[x, y] = Cell(
-                    valid=(cell == '0'), adj_list=adj_list)
+                self. vertex_matrix[x, y] = Cell(valid=(cell == '0'), adj_list=adj_list)
+
+        # variable to count number of graph update iterations
+        # used in update_function
+        self.iteration_count = 0 
 
     def vertex(self, vert):
         """ Vertex identifier is a tuple (x,y) correspoding to the vertex's position """
         return self.vertex_matrix[vert]
 
-    def A_star_search(self, start, goal, update_function=lambda gh, f, s, g: None):
-        def distance(a, b):
-            """ 
-            A measure of distance between vertex a and vertex b in the grid
-            Use distance fomula: d = max(|a.x-b.x|, |a.y-b.y|)
-            """
-            return max(abs(a[0]-b[0]), abs(a[1]-b[1]))
+    @staticmethod
+    def euclidean_distance(a,b):
+        """ 
+        A way to measure of distance between vertex a and vertex b in the grid
+        Use Euclidean distance fomula: d = sqrt((a.x-b.x)^2 + (a.y-b.y)^2)
+        """
+        return math.sqrt((a[0]-b[0])**2 + (a[1]-b[1])**2)
 
-        return Graph.A_star_search(self, start, goal,
-                                   heuristic_function=lambda vert: distance(
-                                       vert, goal),
+    @staticmethod
+    def my_distance(a, b):
+        """ 
+        A way to measure of distance between vertex a and vertex b in the grid
+        Use distance fomula: d = max(|a.x-b.x|, |a.y-b.y|)
+        """
+        return max(abs(a[0]-b[0]), abs(a[1]-b[1]))
+
+    def greedy_search(self, start, goal, distance_function = my_distance.__func__, update_function=lambda gh, f, s, g: None):
+        """
+        Overload of Graph.greedy_search():
+        Input a distance_function (function to measure distance bettween 2 cell)
+        Calculate heuristic function and feed to Graph.greedy_search()
+        """
+        return Graph.greedy_search(self, start, goal,
+                                   heuristic_function=lambda vert: distance_function(vert, goal),
                                    update_function=update_function)
 
-    iteration_count = 0
+    def A_star_search(self, start, goal, distance_function = my_distance.__func__, update_function=lambda gh, f, s, g: None):
+        """
+        Overload of Graph.A_star_search():
+        Input a distance_function (function to measure distance bettween 2 cell)
+        Calculate heuristic function and feed to Graph.A_star_search()
+        """
+        return Graph.A_star_search(self, start, goal,
+                                   heuristic_function=lambda vert: distance_function(vert, goal),
+                                   update_function=update_function)
 
     def print_grid_state(self, frontier, start, goal):
         """ 
@@ -84,7 +109,7 @@ class Grid_graph(Graph):
         obstacles: display []
         Stop between each execution: input() or time.sleep() at the end of function
          """
-        Grid_graph.iteration_count += 1
+        self.iteration_count += 1
         grid_state = np.full(self.size, ' --')
 
         for i in range(self.size[0]):
@@ -96,22 +121,23 @@ class Grid_graph(Graph):
 
         grid_state[start] = 'S'
         grid_state[goal] = 'G'
+
+        min_vert = 0 # min_vert is vertex with smallest priority value, 0 is just the initialize value
         for idx, vert in enumerate(frontier):
             #print(f'{vert}:{frontier[vert]}',end=' ')
-            min_vert = 0
             if idx == 0 or frontier[vert] < frontier[min_vert]:
                 min_vert = vert
             grid_state[vert] = f'*{frontier[vert]}'
         grid_state[min_vert] = f'+{frontier[min_vert]}'
 
         print()
-        print('%3d|--------------------------|' % (Grid_graph.iteration_count))
+        print('%3d|--------------------------|' % (self.iteration_count))
         for row in grid_state:
             for cell in row:
                 print('%3s' % (cell), end='')
             print()
-        # input()
-        time.sleep(0.5)
+        input()
+        #time.sleep(0.5)
 
     def print_found_path(self, path):
         """ Print the found shortest path in the grid: cells in path display by 'x' """

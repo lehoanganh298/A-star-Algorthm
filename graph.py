@@ -26,14 +26,14 @@ class Graph:
         """
         pass
 
-    def search_with_priority_queue(self, start, goal, priority_value, update_function=lambda gh, f, s, g: None):
+    def search_with_priority_queue(self, start, goal, priority_function, update_function=lambda gh, f, s, g: None):
         """
         Find the shortest path from one vertex to another vertex in the graph using priority queue
-        Main idea: expand the vertex with smallest priority_value value in the frontier
+        Main idea: expand the vertex with smallest priority_function value in the frontier
 
         Input: 
         start, goal: identifiers (name/index) of the start point and the destination point
-        priority_value: return a priority value to each vertex to determine which vertex in the frontier to be expanded
+        priority_function: return a priority value to each vertex to determine which vertex in the frontier to be expanded
             (expand vertex with smallest priority value)
         update_function (optional): function execute each time the graph update
             (i.e expand a vertex in the frontier)
@@ -65,7 +65,7 @@ class Graph:
 
         frontier = {}  # priority queue store CURRENTLY OPEN vertices and their distance
         # sorted by their distance (vertex with smallest distance on top)
-        frontier[start] = priority_value(start)  # add start vetice
+        frontier[start] = priority_function(start)  # add start vetice
 
         while frontier:
             # print current graph state or any update operation in each iteration
@@ -89,7 +89,7 @@ class Graph:
                         vert).dist + edge_len   # update distance
                     self.vertex(adj).trace = vert  # update trace back vertex
                     # update/add updated vertex to frontier with it's priority key value
-                    frontier[adj] = priority_value(adj)
+                    frontier[adj] = priority_function(adj)
 
         return self.vertex(goal).dist, path
 
@@ -99,18 +99,30 @@ class Graph:
         Expand the vertex with smallest dist value in the frontier
         """
         return self.search_with_priority_queue(start, goal,
-                                                priority_value=lambda vert: self.vertex(vert).dist,
+                                                priority_function=lambda vert: self.vertex(vert).dist,
                                                 update_function=update_function)
 
+    def greedy_search(self, start, goal, heuristic_function, update_function=lambda gh, f, s, g: None):
+        """
+        Greedy seach algorithm
+        Use the heuristic_function to estimate distance of a vertex to the Goal
+        Expand the vertex in the frontier with smallest heuristic value
+        Very fast performance
+        Result path may not be optimal (shortest)
+        """
+        return self.search_with_priority_queue(start, goal,
+                                               priority_function=heuristic_function,
+                                               update_function=update_function)
+                                               
     def A_star_search(self, start, goal, heuristic_function, update_function=lambda gh, f, s, g: None):
         """
         A* algorithm: search with extra information
-        Use the heuristic_function to estimate distance of a vertice to the Goal
-        Expand the vertex with the smallest f(vert) = dist(vert) + heuristic(vert)
+        Use the heuristic_function to estimate distance of a vertex to the Goal
+        Expand the vertex in the frontier with the smallest f(vert) = dist(vert) + heuristic(vert)
         """
         def f_A_star(vert):
             return self.vertex(vert).dist + heuristic_function(vert)
 
         return self.search_with_priority_queue(start, goal,
-                                               priority_value=f_A_star,
+                                               priority_function=f_A_star,
                                                update_function=update_function)
