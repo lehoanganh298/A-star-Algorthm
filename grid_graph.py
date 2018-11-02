@@ -104,10 +104,13 @@ class Grid_graph(Graph):
                                    heuristic_function=lambda vert: distance_function(vert, goal),
                                    update_function=update_function)
 
-    def ARA_star_search(self, start, goal, distance_function = my_distance.__func__, update_function=lambda gh, f, s, g: None):
+    def ARA_star_search(self, start, goal, distance_function = my_distance.__func__, 
+        update_session=lambda e,d,p: None,
+        update_iteration=lambda gh, f, s, g: None):
         return Graph.ARA_star_search(self, start, goal,
                                    heuristic_function=lambda vert: distance_function(vert, goal),
-                                   update_function=update_function)
+                                   update_session=update_session,
+                                   update_iteration=update_iteration)
 
     def print_grid_state(self, frontier, start, goal):
         """ 

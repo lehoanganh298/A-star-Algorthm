@@ -129,7 +129,10 @@ class Graph:
                                                priority_function=f_A_star,
                                                update_function=update_function)
 
-    def ARA_star_search(self, start, goal, heuristic_function, update_function=lambda gh, f, s, g: None):
+    def ARA_star_search(self, start, goal, heuristic_function, 
+        update_session=lambda e,d,p: None,
+        update_iteration=lambda gh, f, s, g: None):
+
         def priority_function(vert,epsilon):
             return self.vertex(vert).dist + epsilon*heuristic_function(vert)
 
@@ -145,7 +148,7 @@ class Graph:
             path=[]
             while frontier:
                 # print current graph state or any update operation in each iteration
-                update_function(self, frontier, start, goal)
+                update_iteration(self, frontier, start, goal)
 
                 # pop vertex with smallest priority value value
                 vert = pop_minimum(frontier)
@@ -177,9 +180,7 @@ class Graph:
         frontier[start] = priority_function(start,epsilon)  # add start vetice
 
         shortest_distance, path, frontier = improve_path(epsilon)
-        print(f'epsilon = {epsilon}: distance = {shortest_distance}')
-        print(path)
-        input()
+        update_session(epsilon,shortest_distance,path)
 
         while epsilon>1:
             epsilon-=1
@@ -187,9 +188,7 @@ class Graph:
                 frontier[vert]=priority_function(vert,epsilon)
             frontier[goal]=priority_function(goal,epsilon)
             shortest_distance, path, frontier = improve_path(epsilon)
-            print(f'epsilon = {epsilon}: distance = {shortest_distance}')
-            print(path)
-            input()
+            update_session(epsilon,shortest_distance,path)
         
         return shortest_distance, path
 

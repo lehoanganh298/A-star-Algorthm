@@ -25,8 +25,10 @@ def input_from_file(file_name):
     else:
         raise Exception('Some error occur.')
 
-def print_session_result(sub_optimality):
-    print(f'epsilon = {sub_optimality}')
+def print_session_result(epsilon,shortest_distance,path):
+    print(f'epsilon = {epsilon}: distance = {shortest_distance}')
+    print(path)
+    input()
 
 # BEGIN THE PROGRAM ---------------------------------------
 
@@ -38,9 +40,9 @@ g = Grid_graph(grid)
 # shortest_distance, path = g.greedy_search(start, goal, 
 #     distance_function=Grid_graph.my_distance,
 #     update_function= Grid_graph.print_grid_state)
-shortest_distance, path = g.ARA_star_search(start, goal, 
-    distance_function = Grid_graph.my_distance,
-    update_function = Grid_graph.print_grid_state)
+shortest_distance, path = g.ARA_star_search(start, goal,
+    update_session=print_session_result,
+    update_iteration = Grid_graph.print_grid_state)
 # shortest_distance,path = g.ARA_star_search(start, goal, 
 #     distance_function = Grid_graph.my_distance,
 #     update_function = Grid_graph.print_grid_state)
