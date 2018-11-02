@@ -69,6 +69,8 @@ class Grid_graph(Graph):
         """ 
         A way to measure of distance between vertex a and vertex b in the grid
         Use Euclidean distance fomula: d = sqrt((a.x-b.x)^2 + (a.y-b.y)^2)
+        This produce a NOT ADMISSIBLE heuristic function in this case
+        as the value it return my exceed the shortest path length between 2 cell
         """
         return math.sqrt((a[0]-b[0])**2 + (a[1]-b[1])**2)
 
@@ -77,6 +79,8 @@ class Grid_graph(Graph):
         """ 
         A way to measure of distance between vertex a and vertex b in the grid
         Use distance fomula: d = max(|a.x-b.x|, |a.y-b.y|)
+        This produce a consistent (and admissible) heuristic function 
+        as the value it return never exceed any real path length between 2 cell
         """
         return max(abs(a[0]-b[0]), abs(a[1]-b[1]))
 
@@ -97,6 +101,11 @@ class Grid_graph(Graph):
         Calculate heuristic function and feed to Graph.A_star_search()
         """
         return Graph.A_star_search(self, start, goal,
+                                   heuristic_function=lambda vert: distance_function(vert, goal),
+                                   update_function=update_function)
+
+    def ARA_star_search(self, start, goal, distance_function = my_distance.__func__, update_function=lambda gh, f, s, g: None):
+        return Graph.ARA_star_search(self, start, goal,
                                    heuristic_function=lambda vert: distance_function(vert, goal),
                                    update_function=update_function)
 
@@ -136,8 +145,8 @@ class Grid_graph(Graph):
             for cell in row:
                 print('%3s' % (cell), end='')
             print()
-        input()
-        #time.sleep(0.5)
+        #input()
+        time.sleep(0.3)
 
     def print_search_result(self, shortest_distance, path):
         """ Print the found shortest path length, list of vertices display on the grid 
