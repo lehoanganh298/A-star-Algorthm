@@ -75,9 +75,9 @@ class Graph:
         path = []  # store vertices in the shortest road from start to goal
         self.vertex(start).dist = 0
 
-        frontier = {}  # priority queue store CURRENTLY OPEN vertices and their distance
-        # sorted by their distance (vertex with smallest distance on top)
-        frontier[start] = priority_function(start)  # add start vetice
+        frontier = {}  # priority queue store CURRENTLY OPEN vertices and their priority value
+        # sorted by their priority value (vertex with smallest priority value on top)
+        frontier[start] = priority_function(start)  # add start vertex
 
         while frontier:
             # print current graph state or any update operation in each iteration
@@ -134,14 +134,15 @@ class Graph:
                                                priority_function=f_A_star,
                                                update_function=update_function)
 
-    def ARA_star_search(self, start, goal, heuristic_function, 
+    def ARA_star_search(self, start, goal, time_limit, heuristic_function, 
+        epsilon = 10,
         update_session=lambda e,d,p: None,
         update_iteration=lambda gh, f, s, g: None):
 
-        def priority_function(vert,epsilon):
+        def priority_function(vert):
             return self.vertex(vert).dist + epsilon*heuristic_function(vert)
 
-        def improve_path(epsilon):
+        def improve_path():
             def pop_minimum(dic):
                 min_key = 0
                 for idx, key in enumerate(dic):
@@ -154,10 +155,8 @@ class Graph:
             while frontier:
                 # print current graph state or any update operation in each iteration
                 update_iteration(self, frontier, start, goal)
-
                 # pop vertex with smallest priority value value
                 vert = pop_minimum(frontier)
-
                 if vert == goal:
                     path = self.trace_back_path(start, goal)
                     break
@@ -165,31 +164,39 @@ class Graph:
                 for adj, edge_len in self.vertex(vert).adjacency_list:
                     if self.vertex(adj).dist == -1 \
                             or self.vertex(adj).dist > self.vertex(vert).dist + edge_len:
-                        self.vertex(adj).dist = self.vertex(
-                            vert).dist + edge_len   # update distance
+                        self.vertex(adj).dist = self.vertex(vert).dist + edge_len   # update distance
                         self.vertex(adj).trace = vert  # update trace back vertex
                         # update/add updated vertex to frontier with it's priority key value
-                        frontier[adj] = priority_function(adj,epsilon)
+                        frontier[adj] = priority_function(adj)
 
             return self.vertex(goal).dist, path, frontier
 
+        time_begin=time.time() # get the time at function begin execute
+
         path = []  # store vertices in the shortest road from start to goal
         self.vertex(start).dist = 0
-        epsilon=7
-        frontier = {}  # priority queue store CURRENTLY OPEN vertices and their distance
-        # sorted by their distance (vertex with smallest distance on top)
-        frontier[start] = priority_function(start,epsilon)  # add start vetice
+        frontier = {}  # priority queue store CURRENTLY OPEN vertices and their priority value
+        frontier[start] = priority_function(start)  # add start vertex
 
-        shortest_distance, path, frontier = improve_path(epsilon)
-        update_session(epsilon,shortest_distance,path)
+        shortest_distance, path, frontier = improve_path()
+        if time.time()-time_begin<time_limit:
+            update_session(self,time.time()-time_begin,epsilon,shortest_distance,path) # print result of the fitrst session
 
-        while epsilon>1:
-            epsilon-=1
-            for vert in frontier:
-                frontier[vert]=priority_function(vert,epsilon)
-            frontier[goal]=priority_function(goal,epsilon)
-            shortest_distance, path, frontier = improve_path(epsilon)
-            update_session(epsilon,shortest_distance,path)
+            if shortest_distance != -1:
+                while epsilon>1 and time.time()-time_begin<time_limit:
+                    epsilon-=1  # decrease epsilon
+
+                    # update frontier elements with new priority_function (new epsilon)
+                    for vert in frontier:
+                        frontier[vert]=priority_function(vert)
+                    frontier[goal]=priority_function(goal)  # add goal to the frontier
+
+                    # improve path in another session with new epsilon value
+                    shortest_distance, path, frontier = improve_path()
+                    if time.time()-time_begin<time_limit:
+                        update_session(self,time.time()-time_begin,epsilon,shortest_distance,path)
+                    else:
+                        break
         
         return shortest_distance, path
 

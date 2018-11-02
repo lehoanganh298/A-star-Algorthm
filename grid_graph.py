@@ -104,10 +104,10 @@ class Grid_graph(Graph):
                                    heuristic_function=lambda vert: distance_function(vert, goal),
                                    update_function=update_function)
 
-    def ARA_star_search(self, start, goal, distance_function = my_distance.__func__, 
+    def ARA_star_search(self, start, goal, time_limit, distance_function = my_distance.__func__, 
         update_session=lambda e,d,p: None,
         update_iteration=lambda gh, f, s, g: None):
-        return Graph.ARA_star_search(self, start, goal,
+        return Graph.ARA_star_search(self, start, goal, time_limit,
                                    heuristic_function=lambda vert: distance_function(vert, goal),
                                    update_session=update_session,
                                    update_iteration=update_iteration)
@@ -177,3 +177,7 @@ class Grid_graph(Graph):
                 for p in row:
                     print(p, end=' ')
                 print()
+
+    def print_session_result(self, time, epsilon,shortest_distance,path):
+        print('Time: {:.2f}s, epsilon = {}: distance = ' .format(time,epsilon),end='')
+        self. print_search_result(shortest_distance, path)
