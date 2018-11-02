@@ -28,6 +28,16 @@ class Graph:
         """
         pass
 
+    def trace_back_path(self,start, goal):
+        """ From graph state after seaching process, 
+        trace back from goal vertex to start using the trace attribute to find the path """
+        path = [goal]
+        vert=goal
+        while vert != start:
+            vert = self.vertex(vert).trace
+            path = [vert]+path
+        return path
+
     def search_with_priority_queue(self, start, goal, priority_function, update_function=lambda gh, f, s, g: None):
         """
         Find the shortest path from one vertex to another vertex in the graph using priority queue
@@ -77,18 +87,13 @@ class Graph:
             vert = pop_minimum(frontier)
 
             if vert == goal:
-                # Trace back to start and add vertices to {path}
-                path = [goal]+path
-                while vert != start:
-                    vert = self.vertex(vert).trace
-                    path = [vert]+path
+                path = self.trace_back_path(start, goal)
                 break
 
             for adj, edge_len in self.vertex(vert).adjacency_list:
                 if self.vertex(adj).dist == -1 \
                         or self.vertex(adj).dist > self.vertex(vert).dist + edge_len:
-                    self.vertex(adj).dist = self.vertex(
-                        vert).dist + edge_len   # update distance
+                    self.vertex(adj).dist = self.vertex(vert).dist + edge_len   # update distance
                     self.vertex(adj).trace = vert  # update trace back vertex
                     # update/add updated vertex to frontier with it's priority key value
                     frontier[adj] = priority_function(adj)
@@ -154,11 +159,7 @@ class Graph:
                 vert = pop_minimum(frontier)
 
                 if vert == goal:
-                    # Trace back to start and add vertices to {path}
-                    path = [goal] + path
-                    while vert != start:
-                        vert = self.vertex(vert).trace
-                        path = [vert]+path
+                    path = self.trace_back_path(start, goal)
                     break
 
                 for adj, edge_len in self.vertex(vert).adjacency_list:
