@@ -138,6 +138,11 @@ class Graph:
         epsilon = 10,
         update_session=lambda e,d,p: None,
         update_iteration=lambda gh, f, s, g: None):
+        """
+        ARA* (Anytime repairing A*) search algorithm (search within a given time limit)
+        Search with heuristic h'(v) = eps*h(v) (eps>1) to find a path quick but not optimal.
+        If still have time, decrease eps and continue another search session to find a more optimal solution.
+        """
 
         def priority_function(vert):
             return self.vertex(vert).dist + epsilon*heuristic_function(vert)
@@ -199,75 +204,3 @@ class Graph:
                         break
         
         return shortest_distance, path
-
-    # def improve_path(self, goal, frontier, 
-    #         priority_function, update_function=lambda gh, f, s, g: None):
-    #     def pop_minimum(dic):
-    #         min_key = 0
-    #         for idx, key in enumerate(dic):
-    #             if idx == 0 or priority_function(key)<priority_function(min_key):
-    #                 min_key = key
-    #         dic.remove(min_key)
-    #         return min_key
-
-    #     closed_queue=incons_queue = set()
-    #     while priority_function(goal)>min([priority_function(v) for v in frontier]):
-    #         update_function(frontier,start,goal)
-    #         vert = pop_minimum(frontier)
-    #         closed_queue.add(vert)
-    #         for adj, edge_len in self.vertex(vert).adjacency_list:
-    #             if self.vertex(adj).dist == -1 \
-    #                 or self.vertex(adj).dist > self.vertex(vert).dist + edge_len:
-    #                 self.vertex(adj).dist = self.vertex(vert).dist + edge_len   # update distance
-    #                 self.vertex(adj).trace = vert  # update trace back vertex
-    #                 # update/add updated vertex to frontier with it's priority key value
-    #                 if adj not in closed_queue:
-    #                     frontier.add(adj)
-    #                 else:
-    #                     incons_queue.add(adj)
-
-    #     return self.vertex(goal).dist, frontier, incons_queue
-
-    # def ARA_star_search(self, time_limit, start, goal ,heuristic_function, 
-    #     update_session=lambda d,p: None,
-    #     update_function=lambda gh, f, s, g: None):
-    #     """
-    #     ARA* (Anytime repairing A*) search algorithm (search within a given time limit)
-    #     Search with heuristic h'(v) = eps*h(v) (eps>1) to find a path quicker but less optimal.
-    #     If still have time, decrease eps and continue another search session to find a more optimal solution.
-    #     """
-    #     def fvalue(vert):
-    #         return self.vertex(vert).dist + epsilon*heuristic_function(vert)
-
-    #     shortest_distance=-1
-    #     path=[]
-    #     epsilon_initial_value = 10  # initial value of epsilon
-    #     epsilon_delta = 1           # epsilon decrease amount each session
-
-    #     time_begin = time.time()
-    #     epsilon = epsilon_initial_value
-    #     open_queue = incons_queue=set()
-    #     open_queue.add(start)
-        
-    #     shortest_distance, open_queue, incons_queue \
-    #     = self.improve_path(goal, open_queue, fvalue, update_function)
-
-    #     if shortest_distance == -1:
-    #         return shortest_distance
-
-    #     sub_opt = min(epsilon, shortest_distance/ min([self.vertex(v).dist+heuristic_function(v) for v in {**open_queue,**incons_queue}]))
-    #     update_session(sub_opt)
-
-    #     while sub_opt>1 and time.time()-time_begin<time_limit:
-    #         epsilon-=epsilon_delta
-    #         open_queue={**open_queue,**incons_queue}
-    #         self.improve_path(goal, open_queue,epsilon,update_function)
-
-    #         sub_opt = min(epsilon, shortest_distance/ \
-    #             min([self.vertex(v).dist+heuristic_function(v) \
-    #                 for v in {**open_queue,**incons_queue}]))
-    #         update_session(sub_opt)
-
-    #     return shortest_distance, path
-            
-        
